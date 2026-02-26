@@ -1,5 +1,11 @@
 This Unity project prototypes an advanced character controller for a 2D platformer. Crisp and fluid movement free of common bugs from collision and ground detection. A precise jump mechanic that includes coyote time and jump buffering. All using industry standard design patterns.
 
+Darcy Mazloum - 2545876
+
+Controls:
+Left Stick or A/D for left and right.
+South Gamepad Button or Space Bar to Jump.
+
 ## Character Movement Explanation
       I decided to use RigidBody2D for my character because:
       
