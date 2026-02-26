@@ -1,11 +1,11 @@
 This Unity project includes an advanced character controller for a 2D platformer.
 
 ## Character Movement Explanation:
-#      I decided to use RigidBody2D for my character because
-#      1) I get to easily manipulate the velocity of the RigidBody (calculate it using SmoothDamp and just multiply that speed by the direction), 
-#      2) I know that it will collide properly with the static colliders since the RigidBody is tracked by the physics engine,
-#      3) I can set the RigidBody to have interpolate=interpolate and collision detection=continuous to avoid common bugs, and 
-#      4) RigidBodys, where the loop is FixedUpdate(), are perfect for 2D platformers where we rely on forces from the physics engine and precise collisions.
+###      I decided to use RigidBody2D for my character because
+###      1) I get to easily manipulate the velocity of the RigidBody (calculate it using SmoothDamp and just multiply that speed by the direction), 
+###      2) I know that it will collide properly with the static colliders since the RigidBody is tracked by the physics engine,
+###      3) I can set the RigidBody to have interpolate=interpolate and collision detection=continuous to avoid common bugs, and 
+###      4) RigidBodys, where the loop is FixedUpdate(), are perfect for 2D platformers where we rely on forces from the physics engine and precise collisions.
  
  Polling vs. Callback Methods:
       I decided to use polling for both the movement and the jump because I needed frame by frame precision for both.
