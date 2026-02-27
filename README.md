@@ -16,17 +16,17 @@ South Gamepad Button or Space Bar to Jump.
  
 ## Polling vs. Callback Methods
       
-      I decided to use polling for both the movement and the jump because I needed frame by frame precision for both.
-      
-      I know that you recommend using callbacks for jumps, but it was critical for me to know the exact frame when the jump button was pressed and released.
-      
-       For example, when the Jump has its velocity cut when the player releases the jump button on the way up. There is one frame where the jump button 
-      was released AND they are still jumping AND they are still moving upwards. Having all these states be known was critical. By polling I can
-      easily access the status of the button while also tracking other logic.
+      I decided to use polling for both the movement and the jump.
+
+      As the movement is a continuous input, it is best to use polling for it. Whereas the jump should use callback methods as pressing and releasing the jump button are discrete actions..
+
+      I initially built my jump with polling and realized afterwards that callbacks are best. I have made a second script that includes a pseudo code implementation of the jump mechanic that would use callback methods.
+
+      The controller I made that uses polling for the jump works perfectly, so I will only change it to use callbacks if I have time. But I recognize that callbacks would have been better to use and intend to use them going forward.
          
 ## Ground Detection Method: RayCast
       I decided to use the RayCast for my ground detection for its precision. It allowed the code to have zero frames of ground detection after the 
       jump had been performed.
       
-## Coyote Time or Buffered Jump: Both
+## Coyote Time or Buffered Jump
       I decided to include both.
