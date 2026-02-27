@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /*
+ * These explainers can be found in the Readme as well.
+ * 
  * Character Movement Explanation:
  *      I decided to use RigidBody2D for my character because
  *      1) I get to easily manipulate the velocity of the RigidBody (calculate it using SmoothDamp and just multiply that speed by the direction), 
@@ -218,7 +220,7 @@ public class PlayerMovement : MonoBehaviour
             // If the player is Jumping,
             //      and the Jump button was held on the previous frame (but not this one),
             //      and the player is moving up, then the downward velocity is doubled.
-            if (Jumping && JumpHeld && rb.linearVelocityY > 0f)
+            if (Jumping && JumpHeld && rb.linearVelocityY > 0f && !JumpFallFeelOnce )
             {
                 // Cut the y velocity
                 rb.linearVelocityY *= JumpFeelCut;
