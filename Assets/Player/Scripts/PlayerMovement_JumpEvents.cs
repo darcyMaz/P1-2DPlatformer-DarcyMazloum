@@ -26,17 +26,17 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     [SerializeField] private float minSpeed = 0.05f;
 
     // Jump
-    [SerializeField] float JumpForce = 8f;
+    [SerializeField] float JumpForce = 10f;
     // Ground
     [SerializeField] private Transform feet;
-    [SerializeField] private float GroundRaycastDistance = 0.08f;
+    [SerializeField] private float GroundRaycastDistance = 0.1f;
     [SerializeField] LayerMask GroundLayer;
     [SerializeField] private bool GroundedRay = false;
     private bool JumpHeld;
     private bool Jumping;
     // Coyote Time
     private float CoyoteTimer;
-    [SerializeField] float CoyoteTime = 0.25f;
+    [SerializeField] float CoyoteTime = 0.3f;
     // Jump Buffering
     private float JumpBufferTimer;
     [SerializeField] float JumpBufferTime = 0.2f;
@@ -46,6 +46,9 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     [SerializeField] float JumpFeelCut = 0.5f;
     [SerializeField] float TerminalSpeed = 15f;
     [SerializeField] float FallMultiplier = 2.5f;
+
+    // Event Vars
+    private bool _isGrounded = false;
 
 
     private void Awake()
@@ -104,10 +107,38 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
 
     private void Update()
     {
+        JumpChecks();
+    }
+
+    private void JumpChecks()
+    {
         // JumpChecks()
         //      A function that would, every frame,
         //      (1) check if we've left the ground without jumping and start the coyote time counter and
         //      (2) when we land on the ground, check if the jump buffer timer > 0, if so perform a jump.
+
+        // Is the player currently grounded?
+        bool IsCurrentlyGrounded = isGrounded();
+
+        // If on the previous frame the player was grounded and on the current frame they are not
+        if (_isGrounded && !IsCurrentlyGrounded)
+        {
+            // Start the coyote timer
+            CoyoteTimer = CoyoteTime;
+        }
+        // Decrease the coyote timer or keep it at zero if it goes under zero.
+        CoyoteTimer = (CoyoteTimer > 0f) ? CoyoteTimer - Time.deltaTime : 0f;
+
+        // If on the previous frame the player was not grounded but this frame they were then we have just reached the ground.
+        if (!_isGrounded && IsCurrentlyGrounded)
+        {
+            // Check if there is a jump buffered.
+
+        }
+
+        // Make _isGrounded the grounded state of the current frame.
+        _isGrounded = IsCurrentlyGrounded;
+
     }
 
     private void Move()
@@ -152,6 +183,11 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     // Now this function will be called whenever space bar is pressed.
     private void PressJump(InputAction.CallbackContext action)
     {
+        Debug.Log("Jump pressed");
+
+        rb.linearVelocityY += JumpForce;
+
+
         // if is grounded or coyote time > 0
         //      jump
 
@@ -162,6 +198,7 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     // This function will be called whenever space bar is released.
     private void ReleaseJump(InputAction.CallbackContext action)
     {
+        Debug.Log("Jump Released");
         // if rb.linearvelocityY > 0 and !IsGrounded
         //      cut the linear velocity by the FeelFeel value (in half)
     }
