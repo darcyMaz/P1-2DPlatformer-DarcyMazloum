@@ -108,17 +108,29 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     private void Update()
     {
         JumpChecks();
+
+        // Two problems:
+        // 1) Jump at the start?
+        // 2) Jump buffer has that same problem where it sometimes does a full jump even if the button's not being held down.
+
+        // Second one happens because a buffered jump never has a "release" for the velcocity to be cut.
     }
 
     private void JumpChecks()
     {
         // JumpChecks()
-        //      A function that would, every frame,
-        //      (1) check if we've left the ground without jumping and start the coyote time counter and
+        //      A function that every frame,
+        //      (1) checks if we've left the ground without jumping and start the coyote time counter and
         //      (2) when we land on the ground, check if the jump buffer timer > 0, if so perform a jump.
 
         // Is the player currently grounded?
         bool IsCurrentlyGrounded = isGrounded();
+
+        // This ensures that the cut in velocity as a result of letting go of the jump button in the air can only happen once.
+        if (IsCurrentlyGrounded)
+        {
+            JumpFallFeelOnce = true;
+        }
 
         // If on the previous frame the player was grounded and on the current frame they are not
         if (_isGrounded && !IsCurrentlyGrounded)
@@ -133,8 +145,19 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
         if (!_isGrounded && IsCurrentlyGrounded)
         {
             // Check if there is a jump buffered.
+            if (JumpBufferTimer > 0)
+            {
+                PerformJump();                
 
+                // I need to check here:
+                //      Is the jump button NOT being held.
+                //      If that's true, then we need to cut the velocity.
+                // I want to do this in a way that preserves the use of the callback system instead of polling.
+
+            }
         }
+        // Decrease the jump buffer timer or keep it at zero if it goes under zero.
+        JumpBufferTimer = (JumpBufferTimer > 0f) ? JumpBufferTimer - Time.deltaTime : 0f;
 
         // Make _isGrounded the grounded state of the current frame.
         _isGrounded = IsCurrentlyGrounded;
@@ -183,24 +206,27 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     // Now this function will be called whenever space bar is pressed.
     private void PressJump(InputAction.CallbackContext action)
     {
-        Debug.Log("Jump pressed");
-
-        rb.linearVelocityY += JumpForce;
-
-
-        // if is grounded or coyote time > 0
-        //      jump
-
-        // else
-        //      start the jump buffer timer
-
+        // If the player is on the ground or if the coyote timer is more than zero.
+        if (isGrounded() || CoyoteTimer > 0)
+        {
+            // Jump
+            PerformJump();
+        }
+        else
+        {
+            // Else, buffer a jump by starting the timer for one.
+            JumpBufferTimer = JumpBufferTime;
+        }
     }
     // This function will be called whenever space bar is released.
     private void ReleaseJump(InputAction.CallbackContext action)
     {
-        Debug.Log("Jump Released");
-        // if rb.linearvelocityY > 0 and !IsGrounded
-        //      cut the linear velocity by the FeelFeel value (in half)
+        // If the player is moving up, when the jump button has been released, then cut the upwards velocity in half.
+        if (rb.linearVelocityY > 0 && JumpFallFeelOnce)
+        {
+            rb.linearVelocityY *= JumpFeelCut;
+            JumpFallFeelOnce = false;
+        }
     }
 
     private void Jump()
@@ -295,9 +321,6 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     {
         // Add the jump force here.
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, JumpForce);
-
-        // Set the Jumping bool to true.
-        Jumping = true;
     }
 
     private void HeavyFall()
