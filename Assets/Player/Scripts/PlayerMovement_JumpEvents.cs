@@ -147,12 +147,15 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
             // Check if there is a jump buffered.
             if (JumpBufferTimer > 0)
             {
-                PerformJump();                
-
-                // I need to check here:
-                //      Is the jump button NOT being held.
-                //      If that's true, then we need to cut the velocity.
-                // I want to do this in a way that preserves the use of the callback system instead of polling.
+                PerformJump();
+                
+                // If the jump button is not pressed when the buffered jump happens, then we need to cut the velocity to ensure a small hop happens.
+                // This would normally be handled by the ReleaseJump() function but it can't be called since this jump uniquely, is performed already released.
+                if (jump.ReadValue<float>() == 0)
+                {
+                    rb.linearVelocityY *= JumpFeelCut;
+                    JumpFallFeelOnce = false;
+                }
 
             }
         }
