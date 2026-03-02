@@ -18,11 +18,13 @@ South Gamepad Button or Space Bar to Jump.
       
       I decided to use polling for both the movement and the jump.
 
-      As the movement is a continuous input, it is best to use polling for it. Whereas the jump should use callback methods as pressing and releasing the jump button are discrete actions..
+      As the movement is a continuous input, it is best to use polling for it. Whereas the jump should use callback methods as pressing and releasing the jump button are discrete actions.
 
-      I initially built my jump with polling and realized afterwards that callbacks are best. I have made a second script that includes a pseudo code implementation of the jump mechanic that would use callback methods.
+      I initially made the jump functionality use polling but upon better understanding of best practices, I made a new script where it uses event callbacks.
 
-      The controller I made that uses polling for the jump works perfectly, so I will only change it to use callbacks if I have time. But I recognize that callbacks would have been better to use and intend to use them going forward.
+      However, I had an issue combining ground detection and the coyote time functionality which led to unintended double jumps. I then took a better look at your scripts, made a second version, and had the same problem.
+
+      I will likely come to you to go over this in the future, as I'd like this to work, but for now I am submitting my fully functional polling version for the jump mechanic due to time constraints.
          
 ## Ground Detection Method: RayCast
       I decided to use the RayCast for my ground detection for its precision. It allowed the code to have zero frames of ground detection after the 
