@@ -2,11 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// This script's jump functionalities don't work.
-// The jump is written out in psuedo code.
-// I will likely get back to this.
-
-public class PlayerMovement_JumpEvents : MonoBehaviour
+public class PlayerMovement_Events1 : MonoBehaviour
 {
     // Input Actions
     private ProjectActions actionSystem;
@@ -32,23 +28,34 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     [SerializeField] private float GroundRaycastDistance = 0.1f;
     [SerializeField] LayerMask GroundLayer;
     [SerializeField] private bool GroundedRay = false;
-    private bool JumpHeld;
-    private bool Jumping;
+    //private bool JumpHeld = false;
+    //private bool Jumping = false;
+    //private bool JumpPressed = false;
+    //private bool JumpReleased = false;
     // Coyote Time
     private float CoyoteTimer;
     [SerializeField] float CoyoteTime = 0.3f;
+    private bool CoyoteTimeBool = true;
     // Jump Buffering
     private float JumpBufferTimer;
     [SerializeField] float JumpBufferTime = 0.2f;
-    private bool JumpBufferBool = false;
+    // private bool JumpBufferBool = false;
     // Fall feel
     private bool JumpFallFeelOnce = false;
     [SerializeField] float JumpFeelCut = 0.5f;
     [SerializeField] float TerminalSpeed = 15f;
     [SerializeField] float FallMultiplier = 2.5f;
+    // [SerializeField] float LowJumpMult = 2f;
+
+    // private int frameCount = 0;
 
     // Event Vars
     private bool _isGrounded = false;
+
+    private bool IsJumpingThisFrame = false;
+
+
+    
 
 
     private void Awake()
@@ -84,40 +91,37 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
         if (TryGetComponent(out rb)) { UseRB = true; }
 
         rb = GetComponent<Rigidbody2D>();
-        JumpHeld = false;
-        CoyoteTimer = CoyoteTime;
-        JumpBufferTimer = JumpBufferTime;
-        Jumping = false;
+        //JumpHeld = false;
+        CoyoteTimer = 0;
+        JumpBufferTimer = 0;
+        //Jumping = false;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+
         // If we never found the RigidBody2D then we can't do any movement.
         if (!UseRB) return;
 
         Move();
         // If Jump is in the Update function, then the IsGrounded check does not work properly.
-        // Jump();
+        //JumpChecks();
         // Making the fall feel heavier goes in the FixedUpdate function as it messes with gravity which is part of the games physics.
         HeavyFall();
-        
-        
+
+        // frameCount++;
     }
 
     private void Update()
     {
         JumpChecks();
-
-        // Two problems:
-        // 1) Jump at the start?
-        // 2) Jump buffer has that same problem where it sometimes does a full jump even if the button's not being held down.
-
-        // Second one happens because a buffered jump never has a "release" for the velcocity to be cut.
     }
 
     private void JumpChecks()
     {
+        
+
         // JumpChecks()
         //      A function that every frame,
         //      (1) checks if we've left the ground without jumping and start the coyote time counter and
@@ -125,19 +129,26 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
 
         // Is the player currently grounded?
         bool IsCurrentlyGrounded = isGrounded();
+        if (IsJumpingThisFrame) IsCurrentlyGrounded = false;
+
 
         // This ensures that the cut in velocity as a result of letting go of the jump button in the air can only happen once.
+        // Also resets coyote time bool. This ensures that we only have a coyote time jump off a ledge and not after jumping.
         if (IsCurrentlyGrounded)
         {
             JumpFallFeelOnce = true;
+            CoyoteTimeBool = true;
         }
 
         // If on the previous frame the player was grounded and on the current frame they are not
         if (_isGrounded && !IsCurrentlyGrounded)
         {
-            // Start the coyote timer
-            CoyoteTimer = CoyoteTime;
+            // Start the coyote timer if the coyotetimebool is true
+            CoyoteTimer = (CoyoteTimeBool) ? CoyoteTime : 0;
         }
+        
+        // Debug.Log("Jumpcheck: " + CoyoteTimeBool + " CoyoteTimer: " + CoyoteTimer + " frame count: " + frameCount + " IsJumpThisFrameBool: " + IsJumpingThisFrame);
+        
         // Decrease the coyote timer or keep it at zero if it goes under zero.
         CoyoteTimer = (CoyoteTimer > 0f) ? CoyoteTimer - Time.deltaTime : 0f;
 
@@ -202,116 +213,44 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     
     private int RoundDirection(float input)
     {
-        // Although I am expecting the movement values to be -1, 0, or 1, this ensures that the behaviour of the sprite is as expected if the values span real numbers from -1 to 1.
+        // Although I am expecting the movement values to be -1, 0, or 1, this ensures that the behaviour of the sprite is as expected if the values span decimal numbers from -1 to 1.
         return (input > 0) ? (int) Math.Ceiling(input): (input < 0) ? (int) Math.Floor(input): 0;
     }
     
-    // Now this function will be called whenever space bar is pressed.
+
+
+    // This function will be called whenever space bar is pressed.
     private void PressJump(InputAction.CallbackContext action)
     {
-        // If the player is on the ground or if the coyote timer is more than zero.
-        if (isGrounded() || CoyoteTimer > 0)
+        if (action.performed)
         {
-            // Jump
-            PerformJump();
-        }
-        else
-        {
-            // Else, buffer a jump by starting the timer for one.
-            JumpBufferTimer = JumpBufferTime;
+
+
+            // If the player is on the ground or if the coyote timer is more than zero.
+            if (isGrounded() || CoyoteTimer > 0)
+            {
+                // Jump
+                PerformJump();
+            }
+            else
+            {
+                // Else, buffer a jump by starting the timer for one.
+                JumpBufferTimer = JumpBufferTime;
+            }
         }
     }
     // This function will be called whenever space bar is released.
     private void ReleaseJump(InputAction.CallbackContext action)
     {
-        // If the player is moving up, when the jump button has been released, then cut the upwards velocity in half.
-        if (rb.linearVelocityY > 0 && JumpFallFeelOnce)
+        if (action.performed)
         {
-            rb.linearVelocityY *= JumpFeelCut;
-            JumpFallFeelOnce = false;
-        }
-    }
-
-    private void Jump()
-    {
-        float jumping = jump.ReadValue<float>();
-        bool IsGrounded = isGrounded();
-
-        // If the player is grounded, then:
-        //   they are not Jumping and the CoyoteTimer is reset,
-        //   if a jump was buffered, a jump is automatically performed,
-        //   jump feel bool is set to false.
-        if (IsGrounded)
-        {
-            Jumping = false;
-            JumpFallFeelOnce = false;
-
-            
-            // If we are Grounded and the JumpBufferBool is true, then it's the first frame that we've landed and the jumpbuffertimer has not reached zero since a buffered jump.
-            if (JumpBufferBool) 
-            { 
-                PerformJump();
-                JumpBufferBool = false;
-
-                // Set JumpHeld to be true even if the player is not pressing the jump button on this frame.
-                JumpHeld = true;
-            }
-
-            CoyoteTimer = CoyoteTime;
-            JumpBufferTimer = JumpBufferTime;
-        }
-        // Otherwise,
-        //   the CoyoteTimer ticks down to zero, and if it reaches zero it stays there
-        //   the jump buffer timer begins to tick down (it stays at zero unless a jump is buffered in code below).
-        else
-        {
-            CoyoteTimer = (CoyoteTimer > 0f) ? CoyoteTimer - Time.deltaTime : 0f;
-
-            JumpBufferTimer -= Time.deltaTime;
-            if (JumpBufferTimer <= 0f) { JumpBufferBool = false; JumpBufferTimer = 0; }
-        }
-
-        
-        // Jump button activated.
-        if (jumping == 1)
-        {
-            // First frame of jump being pressed.
-            if (!JumpHeld && !Jumping && (IsGrounded || CoyoteTimer > 0f))
+            // If the player is moving up, when the jump button has been released, then cut the upwards velocity in half.
+            if (rb.linearVelocityY > 0 && JumpFallFeelOnce)
             {
-                PerformJump();
-            }
-            // Player is jumping and the jump button was not being held down last frame.
-            else if (Jumping && !JumpHeld)
-            {
-                JumpBufferTimer = JumpBufferTime;
-                JumpBufferBool = true;
-            }
-
-            // This variable is made true at the end of this scope because there is behaviour between
-            //      the recognition that we are holding the jump button (setting this bool true) and
-            //      the first frame of pressing it.
-            JumpHeld = true;
-
-        }
-        // Jump button not activated.
-        else
-        {
-            // If the player is Jumping,
-            //      and the Jump button was held on the previous frame (but not this one),
-            //      and the player is moving up, then the downward velocity is doubled.
-            if (Jumping && JumpHeld && rb.linearVelocityY > 0f && !JumpFallFeelOnce )
-            {
-                // Cut the y velocity
                 rb.linearVelocityY *= JumpFeelCut;
-
-                // Also, this can only happen once per jump.
-                JumpFallFeelOnce = true;
+                JumpFallFeelOnce = false;
             }
-
-            JumpHeld = false;
-        }
-
-        
+        }   
     }
 
     private bool isGrounded()
@@ -324,6 +263,14 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
     {
         // Add the jump force here.
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, JumpForce);
+
+        // Makes sure player can't coyote time jump after jumping.
+        CoyoteTimeBool = false;
+        CoyoteTimer = 0;
+
+        IsJumpingThisFrame = true;
+
+        // Debug.Log("Inside perform jump. " + CoyoteTimeBool + " frame count: " + frameCount + " IsJumpThisFrameBool: " + IsJumpingThisFrame);
     }
 
     private void HeavyFall()
@@ -332,8 +279,15 @@ public class PlayerMovement_JumpEvents : MonoBehaviour
         // Make sure it is clamped to a terminal velocity.
         if (rb.linearVelocityY < 0f)
         {
-            if (rb.linearVelocityY <= -TerminalSpeed) rb.linearVelocityY = -TerminalSpeed;
-            else rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (FallMultiplier - 1f) * Time.fixedDeltaTime;
+            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (FallMultiplier - 1f) * Time.fixedDeltaTime;
         }
+        /*
+        else if (rb.linearVelocityY > 0 && JumpHeld)
+        {
+            rb.linearVelocity += Physics2D.gravity.y * (LowJumpMult - 1) * Time.fixedDeltaTime * Vector2.up;
+        }
+        */
+
+        if (rb.linearVelocityY < -TerminalSpeed) rb.linearVelocityY = -TerminalSpeed;
     }
 }

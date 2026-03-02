@@ -1685,7 +1685,7 @@ MonoBehaviour:
   minSpeed: 0.05
   JumpForce: 10
   feet: {fileID: 1299898500}
-  GroundRaycastDistance: 0.1
+  GroundRaycastDistance: 0.095
   GroundLayer:
     serializedVersion: 2
     m_Bits: 128
